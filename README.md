@@ -12,7 +12,7 @@ FileCrawler walks your project directory and produces a neatly formatted `_llm_c
 - **Markdown Formatting** — Every file is appended as `### File: path/to/file` with its contents in triple-backtick fenced blocks, including a language hint for syntax highlighting.
 - **Junk Filtering** — Hardcoded ignore lists skip noisy directories (`node_modules`, `.git`, `venv`, `__pycache__`, `dist`, …) and useless extensions (`.lock`, `.pyc`, images, archives, fonts, binaries, …).
 - **Binary Detection** — Files are sampled before reading; anything detected as binary is skipped cleanly — no `UnicodeDecodeError` crashes.
-- **Oversized File Guard** — Files larger than 1 MB are skipped with a console notice to keep context lean.
+- **Oversized File Guard** — Files larger than 1 MB are never fully included, but they're not silently dropped either. The script writes a stub entry with a warning and the **first 50 lines as a preview**, so the LLM still knows the file exists and can understand its structure.
 - **Zero Dependencies** — Pure Python standard library. No `pip install` required.
 
 ---
