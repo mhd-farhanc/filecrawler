@@ -90,6 +90,14 @@ All filtering is controlled by two sets at the top of `aggregate_codebase.py` �
 
 ---
 
+## 💡 When to use it
+
+FileCrawler works best on **small-to-medium projects** (roughly under 5,000 lines of code). At that scale you get the most out of it — the LLM can see your entire codebase at once and give answers that would otherwise take 10 back-and-forth messages.
+
+For larger repos, point it at a **subfolder** rather than the whole project to keep the context focused and within the LLM's token limit.
+
+---
+
 ## 📋 Requirements
 
 - Python **3.10+** (uses `list[str]` type hints)
