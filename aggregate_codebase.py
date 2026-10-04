@@ -83,8 +83,11 @@ IGNORED_EXTENSIONS = {
 # Hard-coded output filename that is always excluded
 OUTPUT_FILENAME = "_llm_context.txt"
 
-# Max size (bytes) to read per file — skip huge files to keep context lean
+# Max size (bytes) to include a file in full
 MAX_FILE_BYTES = 1_000_000  # 1 MB
+
+# Number of lines to preview for oversized files
+LARGE_FILE_PREVIEW_LINES = 50
 
 
 # ---------------------------------------------------------------------------
@@ -220,7 +223,30 @@ def aggregate(root: str, output_path: str) -> None:
                 continue
 
             if file_size > MAX_FILE_BYTES:
-                print(f"  [skip-large]  {rel_path}  ({file_size:,} bytes)")
+                size_mb = file_size / 1_000_000
+                print(f"  [stub-large]  {rel_path}  ({size_mb:.1f} MB) — preview only")
+                ext = os.path.splitext(rel_path)[1].lstrip(".")
+                out.write(f"### File: {rel_path}\n\n")
+                out.write(
+                    f"> ⚠️ File too large to include in full ({size_mb:.1f} MB). "
+                    f"Showing first {LARGE_FILE_PREVIEW_LINES} lines only.\n\n"
+                )
+                try:
+                    with open(abs_path, "r", encoding="utf-8", errors="replace") as fh:
+                        preview_lines = []
+                        for _ in range(LARGE_FILE_PREVIEW_LINES):
+                            line = fh.readline()
+                            if not line:
+                                break
+                            preview_lines.append(line)
+                    preview = "".join(preview_lines)
+                    out.write(f"```{ext}\n")
+                    out.write(preview)
+                    if preview and not preview.endswith("\n"):
+                        out.write("\n")
+                    out.write("```\n\n")
+                except OSError:
+                    out.write("_Could not read file preview._\n\n")
                 skipped_large += 1
                 continue
 
@@ -251,7 +277,7 @@ def aggregate(root: str, output_path: str) -> None:
 
     print(f"\n[✓] Done.")
     print(f"    Written  : {written} file(s)")
-    print(f"    Skipped  : {skipped_binary} binary, {skipped_large} oversized")
+    print(f"    Skipped  : {skipped_binary} binary, {skipped_large} stubbed (preview only)")
     print(f"    Output   : {os.path.abspath(output_path)}")
 
 
